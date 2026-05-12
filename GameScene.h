@@ -1,6 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 #include "Player.h"
+#include <vector>
 
 
 // ゲームシーン
@@ -26,11 +27,23 @@ private:
 	// スプライト
 	KamataEngine::Sprite* sprite_ = nullptr;
 	// 3Dモデル
-	KamataEngine::Model* model_ = nullptr;
+	KamataEngine::Model* player_model_ = nullptr;
 
 		// ワールドトランスフォーム
 	KamataEngine::WorldTransform worldTransform_;
 	// カメラ
 	KamataEngine::Camera camera_;
+
+	//ブロック
+	KamataEngine::Model* block_model_ = nullptr;
+
+	//ワールドトランスフォーム
+	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 	
+	//デバッグカメラ有効
+	bool isDebugCameraActive_ = false;
+
+	//デバッグカメラ
+	KamataEngine::DebugCamera* debugCamera_ = nullptr;
+
 };
