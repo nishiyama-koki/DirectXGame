@@ -1,96 +1,10 @@
 #include "GameScene.h"
 #include "2d/ImGuiManager.h"
-
+#include "MyMath.h"
 using namespace KamataEngine;
 
-#pragma region 行列の演算
-// 行列の積
-Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
-	Matrix4x4 result{};
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			result.m[i][j] = 0.0f;
-			for (int k = 0; k < 4; ++k) {
-				result.m[i][j] += m1.m[i][k] * m2.m[k][j];
-			}
-		}
-	}
-	return result;
-}
 
-// 単位行列の作成
-Matrix4x4 MakeIdentityMatrix4x4() {
-	Matrix4x4 result{};
-	for (int i = 0; i < 4; ++i) {
-		result.m[i][i] = 1.0f;
-	}
-	return result;
-}
 
-// 平行移動行列
-Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
-	Matrix4x4 result = MakeIdentityMatrix4x4();
-	result.m[3][0] = translate.x;
-	result.m[3][1] = translate.y;
-	result.m[3][2] = translate.z;
-	return result;
-}
-
-// 拡大縮小行列
-Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
-	Matrix4x4 result = MakeIdentityMatrix4x4();
-	result.m[0][0] = scale.x;
-	result.m[1][1] = scale.y;
-	result.m[2][2] = scale.z;
-	return result;
-}
-
-// X軸回転行列
-Matrix4x4 MakeRotateXMatrix(float radian) {
-	Matrix4x4 result = MakeIdentityMatrix4x4();
-	float cosA = std::cos(radian);
-	float sinA = std::sin(radian);
-	result.m[1][1] = cosA;
-	result.m[1][2] = sinA;
-	result.m[2][1] = -sinA;
-	result.m[2][2] = cosA;
-	return result;
-}
-
-// Y軸回転行列
-Matrix4x4 MakeRotateYMatrix(float radian) {
-	Matrix4x4 result = MakeIdentityMatrix4x4();
-	float cosA = std::cos(radian);
-	float sinA = std::sin(radian);
-	result.m[0][0] = cosA;
-	result.m[0][2] = -sinA;
-	result.m[2][0] = sinA;
-	result.m[2][2] = cosA;
-	return result;
-}
-
-// Z軸回転行列
-Matrix4x4 MakeRotateZMatrix(float radian) {
-	Matrix4x4 result = MakeIdentityMatrix4x4();
-	float cosA = std::cos(radian);
-	float sinA = std::sin(radian);
-	result.m[0][0] = cosA;
-	result.m[0][1] = sinA;
-	result.m[1][0] = -sinA;
-	result.m[1][1] = cosA;
-	return result;
-}
-
-// 3次元アフィン変換行列
-Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
-	Matrix4x4 scaleMatrix = MakeScaleMatrix(scale);
-	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
-	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
-	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
-	Matrix4x4 translateMatrix = MakeTranslateMatrix(translate);
-	return Multiply(Multiply(scaleMatrix, Multiply(Multiply(rotateXMatrix, rotateYMatrix), rotateZMatrix)), translateMatrix);
-}
-#pragma endregion
 
 // コンストラクタ
 GameScene::GameScene() {}
@@ -98,6 +12,7 @@ GameScene::GameScene() {}
 // デストラクタ
 GameScene::~GameScene() {
 	delete sprite_;
+	delete modelSkydome_;
 	delete player_model_;
 	delete player_;
 	delete block_model_;
@@ -114,27 +29,32 @@ GameScene::~GameScene() {
 void GameScene::Initialize() {
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandle_ = TextureManager::Load("uvChecker.png");
-	sprite_ = Sprite::Create(textureHandle_, {100, 50});
-
-	// 3Dモデルの生成
+	sprite_ = Sprite::Create(textureHandle_, {100, 50});	
+	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 	player_model_ = Model::Create();
 
 	// ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
 	// カメラの生成
+	camera_.farZ = 5000.0f;
 	camera_.Initialize();
 
-	// 自キャラの生成
+
+	// 天球
+	skydome_ = new Skydome();
+	skydome_->Initialize(modelSkydome_);
+
+
+
+	// 自キャラ
 	player_ = new Player();
-	// 自キャラの初期化
 	player_->Initialize(player_model_, textureHandle_, &camera_);
 
-	// ブロックの生成
+
+	// ブロック
 	block_model_ = Model::Create();
-	// 要素数
 	const uint32_t kNumBlockVirtical = 10;
 	const uint32_t kNumBlockHorizontal = 20;
-	// ブロック1個分の横幅
 	const float kBlockWidth = 2.0f;
 	const float kBlockHeight = 2.0f;
 	// 要素数を変更する
@@ -168,9 +88,13 @@ void GameScene::Initialize() {
 
 	
 
+	
 }
 
 void GameScene::Update() {
+
+	// 天球の更新
+	skydome_->Update();
 
 	// 自キャラの更新
 	player_->Update();
@@ -227,6 +151,9 @@ void GameScene::Draw() {
 
 	// 3Dモデルの描画前処理
 	Model::PreDraw();
+
+	// 天球の描画
+	skydome_->Draw(camera_);
 
 	// ブロックの描画
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {

@@ -1,7 +1,9 @@
 #pragma once
 #include "KamataEngine.h"
 #include "Player.h"
+#include "Skydome.h"
 #include <vector>
+
 
 
 // ゲームシーン
@@ -19,7 +21,7 @@ public:
 	// 描画
 	void Draw();
 
-	Player* player_=nullptr;
+	
 
 private:
 	// テクスチャハンドル
@@ -45,5 +47,11 @@ private:
 
 	//デバッグカメラ
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
+
+	//天球
+	KamataEngine::Model* modelSkydome_ = nullptr;
+
+	Player* player_ = nullptr;
+	Skydome* skydome_ = nullptr;
 
 };

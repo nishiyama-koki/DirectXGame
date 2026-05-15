@@ -1,5 +1,11 @@
 #include "Player.h"
+
 #include <cassert>
+#include "MyMath.h"
+using namespace KamataEngine;
+
+
+
 
 void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandle, KamataEngine::Camera* camera) {
 
@@ -21,7 +27,9 @@ void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandle, Kama
 }
 
 void Player::Update() {
-
+	
+	worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_,
+ worldTransform_.translation_);
 	// 行列を定数バッファに転送
 	worldTransform_.TransferMatrix();
 
