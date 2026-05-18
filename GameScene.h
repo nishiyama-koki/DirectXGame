@@ -2,6 +2,7 @@
 #include "KamataEngine.h"
 #include "Player.h"
 #include "Skydome.h"
+#include "MapChipField.h"
 #include <vector>
 
 
@@ -21,7 +22,7 @@ public:
 	// 描画
 	void Draw();
 
-	
+	void GenerateBlocks();
 
 private:
 	// テクスチャハンドル
@@ -53,5 +54,6 @@ private:
 
 	Player* player_ = nullptr;
 	Skydome* skydome_ = nullptr;
+	MapChipField* mapChipField_ = nullptr;
 
 };
