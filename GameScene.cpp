@@ -29,7 +29,7 @@ GameScene::~GameScene() {
 
 void GameScene::Initialize() {
 	// ファイル名を指定してテクスチャを読み込む
-	textureHandle_ = TextureManager::Load("uvChecker.png");
+	textureHandlePlayer_ = TextureManager::Load("./Resources/player/player.png");
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});	
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 	player_model_ = Model::Create();
@@ -41,23 +41,21 @@ void GameScene::Initialize() {
 	camera_.farZ = 5000.0f;
 	camera_.Initialize();
 
-
 	// 天球
 	skydome_ = new Skydome();
 	skydome_->Initialize(modelSkydome_);
 
-
-
 	// 自キャラ
 	player_ = new Player();
-	player_->Initialize(player_model_, textureHandle_, &camera_);
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
+	player_->Initialize(player_model_, textureHandlePlayer_, & camera_, playerPosition);
+
 
 	// マップチップフィールド
 	mapChipField_ = new MapChipField();
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
 	GenerateBlocks();
 	
-
 	//デバッグカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
 	
