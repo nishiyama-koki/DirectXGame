@@ -3,9 +3,6 @@
 #include "MyMath.h"
 using namespace KamataEngine;
 
-
-
-
 // コンストラクタ
 GameScene::GameScene() {}
 
@@ -25,15 +22,16 @@ GameScene::~GameScene() {
 	}
 	worldTransformBlocks_.clear();
 	delete debugCamera_;
+	delete cameraController_;
 }
 
 void GameScene::Initialize() {
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandlePlayer_ = TextureManager::Load("./Resources/player/player.png");
-	sprite_ = Sprite::Create(textureHandle_, {100, 50});	
+	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 	player_model_ = Model::Create();
-	block_model_ = Model::Create();	
+	block_model_ = Model::Create();
 
 	// ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -44,25 +42,33 @@ void GameScene::Initialize() {
 	// 天球
 	skydome_ = new Skydome();
 	skydome_->Initialize(modelSkydome_);
-
-	// 自キャラ
-	player_ = new Player();
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
-	player_->Initialize(player_model_, textureHandlePlayer_, & camera_, playerPosition);
-
-
+	
 	// マップチップフィールド
 	mapChipField_ = new MapChipField();
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
 	GenerateBlocks();
-	
-	//デバッグカメラの生成
+
+	// 自キャラ
+	player_ = new Player();
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
+	player_->Initialize(player_model_, textureHandlePlayer_, &camera_, playerPosition);
+
+
+	// デバッグカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
-	
+
+	// カメラコントローラー
+	cameraController_ = new CameraController();
+	cameraController_->Initialize();
+	cameraController_->SetTarget(player_);
+	cameraController_->Reset();
+	CameraController::Rect movableCameraArea = {0.0f, 100.0f, 0.0f, 100.0f};
+	cameraController_->SetMovablearea(movableCameraArea);
+
 }
 
 void GameScene::GenerateBlocks() {
-	//要素数
+	// 要素数
 	uint32_t numBlockVirtical = mapChipField_->GetNumBlockVirtical();
 	uint32_t numBlockHorizontal = mapChipField_->GetNumBlockHorizontal();
 
@@ -71,7 +77,7 @@ void GameScene::GenerateBlocks() {
 	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
 		worldTransformBlocks_[i].resize(numBlockHorizontal);
 	}
-	
+
 	// キューブの生成
 	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
 		for (uint32_t j = 0; j < numBlockHorizontal; ++j) {
@@ -94,7 +100,7 @@ void GameScene::Update() {
 
 	// 自キャラの更新
 	player_->Update();
-
+	
 	// ブロックの更新
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
@@ -113,23 +119,31 @@ void GameScene::Update() {
 	// デバッグカメラの更新
 	debugCamera_->Update();
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	// デバッグカメラの有効/無効切り替え Cキーを押すたびに切り替える
 	if (Input::GetInstance()->TriggerKey(DIK_C)) {
 		isDebugCameraActive_ = !isDebugCameraActive_;
 	}
-	#endif
+#endif
 
-	//カメラの処理
+	// カメラの処理
 	if (isDebugCameraActive_) {
+		// デバッグカメラが有効な場合
 		debugCamera_->Update();
 		camera_.matView = debugCamera_->GetCamera().matView;
 		camera_.matProjection = debugCamera_->GetCamera().matProjection;
-		// 通常カメラのビュー行列をカメラに転送する
+		// ビュープロジェクション行列を転送
 		camera_.TransferMatrix();
 	} else {
-		//ビュープロジェクション行列の更新と転送
-		camera_.UpdateMatrix();
+		// ⬇️ 通常時：追従カメラコントローラーの更新
+		cameraController_->Update();
+
+		// コントローラー内のカメラ行列を、GameSceneのメインカメラに反映させる
+		camera_.matView = cameraController_->GetCamera().matView;
+		camera_.matProjection = cameraController_->GetCamera().matProjection;
+
+		// 行列を定数バッファに転送
+		camera_.TransferMatrix();
 	}
 
 }

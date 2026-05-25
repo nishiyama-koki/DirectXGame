@@ -2,6 +2,14 @@
 
 using namespace KamataEngine;
 
+KamataEngine::Vector3 Lerp(const Vector3& start, const Vector3& end, float t) {
+	Vector3 result;
+	result.x = start.x + (end.x - start.x) * t;
+	result.y = start.y + (end.y - start.y) * t;
+	result.z = start.z + (end.z - start.z) * t;
+	return result;
+}
+
 #pragma region 行列の演算
 // 行列の積
 KamataEngine::Matrix4x4 Multiply(const KamataEngine::Matrix4x4& m1, const KamataEngine::Matrix4x4& m2) {

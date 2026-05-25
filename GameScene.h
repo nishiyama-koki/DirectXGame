@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Skydome.h"
 #include "MapChipField.h"
+#include "CameraController.h"
 #include <vector>
 
 
@@ -56,5 +57,6 @@ private:
 	Player* player_ = nullptr;
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_ = nullptr;
+	CameraController* cameraController_ = nullptr;
 
 };
