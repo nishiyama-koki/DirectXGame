@@ -1,5 +1,6 @@
 #define NOMINMAX
 #include "Player.h"
+#include "MapChipField.h"
 #include "MyMath.h"
 #include <algorithm>
 #include <cassert>
@@ -25,15 +26,7 @@ void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 }
 
-void Player::Update() {
-
-	// 着地フラグ
-	bool landing = false;
-	if (velocity_.y < 0) {
-		if (worldTransform_.translation_.y <= 1.0f) {
-			landing = true;
-		}
-	}
+void Player::InputMove() {
 
 	// 移動入力(左右)
 	// 接地状態
@@ -89,17 +82,118 @@ void Player::Update() {
 
 	} else {
 
-		// 着地
+		// 落下速度,速度制限
+		velocity_.y -= kGravityAcceleration;
+		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
+	}
+}
+
+void Player::CheckMapCollision(CollisionMapInfo& info) {
+	CheckMapCollisionUp(info);
+	CheckMapCollisionDown(info);
+	CheckMapCollisionRight(info);
+	CheckMapCollisionLeft(info);
+}
+
+void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
+
+	if (info.moveAmount.y <= 0) {
+		return;
+	}
+
+	// 移動後の4つの角の座標
+	std::array<Vector3, kNumCorner> positionsNew;
+	for (uint32_t i = 0; i < positionsNew.size(); ++i) {
+		Vector3 expectedPos = {worldTransform_.translation_.x + info.moveAmount.x, worldTransform_.translation_.y + info.moveAmount.y, worldTransform_.translation_.z + info.moveAmount.z};
+		positionsNew[i] = CornerPosition(expectedPos, static_cast<Corner>(i));
+	}
+
+	MapChipType mapChipType;
+	// 真上の当たり判定を行う
+	bool hit = false;
+	// 左上点の判定
+	MapChipField::IndexSet indexSet;
+	indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftTop)]);
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+	// 右上点の判定
+	indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kRightTop)]);
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+
+	if (hit) {
+		// めり込みを排除する方向に移動量を設定する
+		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(kLeftTop)]);
+		// めり込み先ブロックの範囲矩形
+		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSet.xIndex, indexSet.yIndex);
+		info.moveAmount.y = (rect.bottom - worldTransform_.translation_.y) - (kHeight / 2.0f + kBlank);
+		info.moveAmount.y = std::max(0.0f, info.moveAmount.y);
+		// 天井に当たったことを記録する
+		info.isCeiling_ = true;
+	}
+}
+void Player::CheckMapCollisionDown(CollisionMapInfo& /* info*/) {}
+void Player::CheckMapCollisionRight(CollisionMapInfo& /* info*/) {}
+void Player::CheckMapCollisionLeft(CollisionMapInfo& /* info*/) {}
+
+void Player::CheckCeilingCollision(const CollisionMapInfo& info) {
+	if (info.isCeiling_) {
+		DebugText::GetInstance()->ConsolePrintf("hit ceiling\n");
+		velocity_.y = 0;
+	}
+}
+
+Vector3 Player::CornerPosition(const KamataEngine::Vector3& center, Player::Corner corner) {
+	Vector3 offsetTable[kNumCorner] = {
+	    {+kWidth / 2.0f, -kHeight / 2.0f, 0.0f},
+        {-kWidth / 2.0f, -kHeight / 2.0f, 0.0f},
+        {+kWidth / 2.0f, +kHeight / 2.0f, 0.0f},
+        {-kWidth / 2.0f, +kHeight / 2.0f, 0.0f}
+    };
+	Vector3 offset = offsetTable[static_cast<uint32_t>(corner)];
+
+	Vector3 result;
+	result.x = center.x + offset.x;
+	result.y = center.y + offset.y;
+	result.z = center.z + offset.z;
+
+	return result;
+}
+
+void Player::Update() {
+
+	// 移動入力処理
+	InputMove();
+
+	// 衝突情報を初期化
+	CollisionMapInfo collisionMapInfo;
+	// 移動量に速度の値をコピー
+	collisionMapInfo.moveAmount = velocity_;
+
+	// マップ衝突チェック
+	CheckMapCollision(collisionMapInfo);
+	velocity_ = collisionMapInfo.moveAmount;
+	CheckCeilingCollision(collisionMapInfo);
+
+	// 着地フラグ
+	bool landing = false;
+	if (velocity_.y < 0) {
+		if (worldTransform_.translation_.y <= 1.4f) {
+			landing = true;
+		}
+	}
+
+	// 着地
+	if (!onGround_) {
 		if (landing) {
-			worldTransform_.translation_.y = 1.0f;
+			worldTransform_.translation_.y = 1.4f;
 			velocity_.x *= (1.0f - kAttenuation);
 			velocity_.y = 0.0f;
 			onGround_ = true;
-		} else {
-
-			// 落下速度,速度制限
-			velocity_.y -= kGravityAcceleration;
-			velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 		}
 	}
 
@@ -127,6 +221,7 @@ void Player::Update() {
 		worldTransform_.rotation_.y = (1.0f - t) * turnFirstRotationY_ + t * destinationRotationY;
 	}
 
+	// 移動量の加算
 	worldTransform_.translation_.x += velocity_.x;
 	worldTransform_.translation_.y += velocity_.y;
 	worldTransform_.translation_.z += velocity_.z;

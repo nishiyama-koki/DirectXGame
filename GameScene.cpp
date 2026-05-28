@@ -27,11 +27,14 @@ GameScene::~GameScene() {
 
 void GameScene::Initialize() {
 	// ファイル名を指定してテクスチャを読み込む
+	textureHandleBlock_ = TextureManager::Load("./Resources/block/block.png");
 	textureHandlePlayer_ = TextureManager::Load("./Resources/player/player.png");
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
-	player_model_ = Model::Create();
-	block_model_ = Model::Create();
+	//player_model_ = Model::Create();
+	//block_model_ = Model::Create();
+	player_model_ = Model::CreateFromOBJ("player", true);
+	block_model_ = Model::CreateFromOBJ("block", true);
 
 	// ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -52,6 +55,8 @@ void GameScene::Initialize() {
 	player_ = new Player();
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
 	player_->Initialize(player_model_, textureHandlePlayer_, &camera_, playerPosition);
+	player_->SetMapChipField(mapChipField_);
+
 
 
 	// デバッグカメラの生成

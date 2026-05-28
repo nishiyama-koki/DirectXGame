@@ -28,6 +28,7 @@ public:
 private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0;
+	uint32_t textureHandleBlock_ = 0;
 	uint32_t textureHandlePlayer_ = 0;
 	// スプライト
 	KamataEngine::Sprite* sprite_ = nullptr;
