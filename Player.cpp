@@ -8,6 +8,8 @@
 
 using namespace KamataEngine;
 
+//05-08完了
+
 void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer, KamataEngine::Camera* camera, const KamataEngine::Vector3& position) {
 
 	// nullポインタチェック
