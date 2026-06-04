@@ -81,9 +81,14 @@ private:
 	void CheckMapCollisionLeft(CollisionMapInfo& info);
       
 	void CheckCeilingCollision(const CollisionMapInfo& info); 
-
-
 	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
 
+	//接地状態の切り替え処理
+	void SwitchGroundingState(const CollisionMapInfo& info);
+	static inline const float kAttenuationLanding = 0.2f;
+
+
+
 	static inline const float kBlank = 0.01f;
+	
 };
