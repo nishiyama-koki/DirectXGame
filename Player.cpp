@@ -161,18 +161,20 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 	indexSetNow = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftBottom)]);
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
 	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSetNow.xIndex, indexSetNow.yIndex - 1); 
-	if (mapChipType == MapChipType::kBlock) {
+	//隣接セルがともにブロックであればヒット
+	if (mapChipType == MapChipType::kBlock||mapChipTypeNext == MapChipType::kBlock) {
 		hit = true;
 	}
 
 	//右下点の判定 
 	indexSetNow = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kRightBottom)]);
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
-	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSetNow.xIndex, indexSetNow.yIndex - 1); // 💡右下側も同様に取得
+	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSetNow.xIndex, indexSetNow.yIndex - 1);
 
-	if (mapChipType == MapChipType::kBlock) {
+	if (mapChipType == MapChipType::kBlock||mapChipTypeNext == MapChipType::kBlock) {
 		hit = true;
 	}
+
 	if (hit) {
 		indexSetNow = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(kLeftBottom)]);
 		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
@@ -315,8 +317,7 @@ void Player::SwitchGroundingState(const CollisionMapInfo& info) {
 	} else {
 		if (info.isFloorTouch_) {
 			onGround_ = true;
-			// X速度を減衰させる（エラーが出ないよう直接0.2fなどの数値を指定すると安全です）
-			velocity_.x *= (1.0f - 0.2f);
+			velocity_.x *= (1.0f - kAttenuationLanding);
 			velocity_.y = 0.0f;
 		}
 	}

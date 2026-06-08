@@ -18,12 +18,12 @@ void CameraController::Update() {
 	const WorldTransform& targetWorldTransform = target_->GetWorldTransform();
 	const Vector3& targetVelocity = target_->GetVelocity();
 	// 追従対象とオフセットからカメラの座標を計算
-	taergetPosition_ = {
+	targetPosition_ = {
 		targetWorldTransform.translation_.x + targetOffset_.x + targetVelocity.x * kVelocityBias,
 		targetWorldTransform.translation_.y + targetOffset_.y + targetVelocity.y * kVelocityBias,
 	    targetWorldTransform.translation_.z + targetOffset_.z + targetVelocity.z * kVelocityBias};
 
-	camera_.translation_ = Lerp(camera_.translation_, taergetPosition_, kInterpolationRate);
+	camera_.translation_ = Lerp(camera_.translation_, targetPosition_, kInterpolationRate);
 
 	//追従対象が画面外に出ないように補正
 	

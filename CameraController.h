@@ -41,7 +41,7 @@ private:
 	// 追従対象との座標の差
 	KamataEngine::Vector3 targetOffset_ = {0.0f, 0.0f, -15.0f};
 
-	KamataEngine::Vector3 taergetPosition_ = {0,0,0};
+	KamataEngine::Vector3 targetPosition_ = {0,0,0};
 	Rect movableArea_ = {0.0f, 100.0f, 0.0f, 100.0f};
 
 
