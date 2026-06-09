@@ -114,6 +114,7 @@ void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
 	MapChipType mapChipTypeNext;
 	// 真上の当たり判定を行う
 	bool hit = false;
+	Corner hitCorner = Corner::kLeftTop;
 
 	// 左上点の判定
 	MapChipField::IndexSet indexSet;
@@ -124,6 +125,7 @@ void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
 	// 隣接セルがともにブロックであればヒット
 	if (mapChipType == MapChipType::kBlock && mapChipTypeNext != MapChipType::kBlock) {
 		hit = true;
+		hitCorner = Corner::kLeftTop;
 	}
 
 	// 右上点の判定
@@ -133,12 +135,13 @@ void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
 
 	if (mapChipType == MapChipType::kBlock && mapChipTypeNext != MapChipType::kBlock) {
 		hit = true;
+		hitCorner = Corner::kRightTop;
 	}
 
 	if (hit) {
-		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftTop)]);
+		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(hitCorner)]);
 		MapChipField::IndexSet indexSetNow;
-		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kLeftTop));
+		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, hitCorner));
 		if (indexSetNow.yIndex != indexSet.yIndex) {
 			MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
 			info.moveAmount.y = (rect.bottom - worldTransform_.translation_.y) - (kHeight / 2.0f + kBlank);
@@ -164,6 +167,7 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 	MapChipType mapChipTypeNext;
 	// 真下の当たり判定を行う
 	bool hit = false;
+	Corner hitCorner = Corner::kLeftBottom;
 
 	//左下点の判定
 	MapChipField::IndexSet indexSet;
@@ -174,6 +178,7 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 	//隣接セルがともにブロックであればヒット
 	if (mapChipType == MapChipType::kBlock&&mapChipTypeNext != MapChipType::kBlock) {
 		hit = true;
+		hitCorner = Corner::kLeftBottom;
 	}
 
 	//右下点の判定 
@@ -183,12 +188,13 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 
 	if (mapChipType == MapChipType::kBlock&&mapChipTypeNext != MapChipType::kBlock) {
 		hit = true;
+		hitCorner = Corner::kRightBottom;
 	}
 
 	if (hit) {
-		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftBottom)]);
+		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(hitCorner)]);
 		MapChipField::IndexSet indexSetNow;
-		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kLeftBottom));
+		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, hitCorner));
 		if (indexSetNow.yIndex !=indexSet.yIndex) {
 			MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
 			info.moveAmount.y = (rect.top - worldTransform_.translation_.y) + (kHeight / 2.0f + kBlank);
@@ -198,7 +204,6 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 	}
 }
 void Player::CheckMapCollisionRight(CollisionMapInfo& info) {
-
 	if (info.moveAmount.x <= 0) {
 		return;
 	}
@@ -211,43 +216,36 @@ void Player::CheckMapCollisionRight(CollisionMapInfo& info) {
 	}
 
 	MapChipType mapChipType;
-	MapChipType mapChipTypeNext;
-	// 真横の当たり判定を行う
 	bool hit = false;
-
-	// 右上点の判定
+	Corner hitCorner = Corner::kRightTop;
 	MapChipField::IndexSet indexSet;
-
+	MapChipField::IndexSet indexSetNow;
+	// 右上点の判定
 	indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kRightTop)]);
+	indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kRightTop));
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
-	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex + 1, indexSet.yIndex);
-	// 隣接セルがともにブロックであればヒット
-	if (mapChipType == MapChipType::kBlock && mapChipTypeNext != MapChipType::kBlock) {
+	if (indexSetNow.xIndex != indexSet.xIndex && mapChipType == MapChipType::kBlock) {
 		hit = true;
+		hitCorner = Corner::kRightTop;
 	}
-
 	// 右下点の判定
 	indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kRightBottom)]);
+	indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kRightBottom));
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
-	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex + 1, indexSet.yIndex);
-
-	if (mapChipType == MapChipType::kBlock && mapChipTypeNext != MapChipType::kBlock) {
+	if ((indexSetNow.xIndex != indexSet.xIndex) && (mapChipType == MapChipType::kBlock)) {
 		hit = true;
+		hitCorner = Corner::kRightBottom;
 	}
 
 	if (hit) {
-		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kRightTop)]);
-		MapChipField::IndexSet indexSetNow;
-		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kRightTop));
-		if (indexSetNow.xIndex != indexSet.xIndex) {
-			MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
-			info.moveAmount.x = (rect.left - worldTransform_.translation_.x) - (kWidth / 2.0f + kBlank);
-			info.moveAmount.x = std::max(0.0f, info.moveAmount.x);
-		}
+		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(hitCorner)]);
+		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, hitCorner));
+		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
+		info.moveAmount.x = (rect.left - worldTransform_.translation_.x) - (kWidth / 2.0f + kBlank);
+		info.moveAmount.x = std::max(0.0f, info.moveAmount.x);
 	}
 }
 void Player::CheckMapCollisionLeft(CollisionMapInfo& info) {
-
 	if (info.moveAmount.x >= 0) {
 		return;
 	}
@@ -260,39 +258,35 @@ void Player::CheckMapCollisionLeft(CollisionMapInfo& info) {
 	}
 
 	MapChipType mapChipType;
-	MapChipType mapChipTypeNext;
-	// 真横の当たり判定を行う
 	bool hit = false;
-
-	// 左上点の判定
+	Corner hitCorner = Corner::kLeftTop;
 	MapChipField::IndexSet indexSet;
-
+	MapChipField::IndexSet indexSetNow;
+	// 左上点の判定
 	indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftTop)]);
+	indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kLeftTop));
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
-	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex - 1, indexSet.yIndex);
-	// 隣接セルがともにブロックであればヒット
-	if (mapChipType == MapChipType::kBlock && mapChipTypeNext != MapChipType::kBlock) {
+	if ((indexSetNow.xIndex != indexSet.xIndex) && (mapChipType == MapChipType::kBlock)) {
 		hit = true;
+		hitCorner = Corner::kLeftTop;
 	}
 
 	// 左下点の判定
 	indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftBottom)]);
+	indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kLeftBottom));
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
-	mapChipTypeNext = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex - 1, indexSet.yIndex);
-
-	if (mapChipType == MapChipType::kBlock && mapChipTypeNext != MapChipType::kBlock) {
+	if ((indexSetNow.xIndex != indexSet.xIndex) && (mapChipType == MapChipType::kBlock)) {
 		hit = true;
+		hitCorner = Corner::kLeftBottom;
 	}
 
 	if (hit) {
-		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(Corner::kLeftTop)]);
-		MapChipField::IndexSet indexSetNow;
-		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, Corner::kLeftTop));
-		if (indexSetNow.xIndex != indexSet.xIndex) {
-			MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
-			info.moveAmount.x = (rect.right - worldTransform_.translation_.x) + (kWidth / 2.0f + kBlank);
-			info.moveAmount.x = std::min(0.0f, info.moveAmount.x);
-		}
+		indexSet = mapChipField_->GetMapIndexSetByPosition(positionsNew[static_cast<uint32_t>(hitCorner)]);
+		indexSetNow = mapChipField_->GetMapIndexSetByPosition(CornerPosition(worldTransform_.translation_, hitCorner));
+
+		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSetNow.xIndex, indexSetNow.yIndex);
+		info.moveAmount.x = (rect.right - worldTransform_.translation_.x) + (kWidth / 2.0f + kBlank);
+		info.moveAmount.x = std::min(0.0f, info.moveAmount.x);
 	}
 }
 
