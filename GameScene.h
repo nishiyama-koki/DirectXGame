@@ -1,6 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 #include "Player.h"
+#include "Enemy.h"
 #include "Skydome.h"
 #include "MapChipField.h"
 #include "CameraController.h"
@@ -30,10 +31,14 @@ private:
 	uint32_t textureHandle_ = 0;
 	uint32_t textureHandleBlock_ = 0;
 	uint32_t textureHandlePlayer_ = 0;
+	uint32_t textureHandleEnemy_ = 0;
 	// スプライト
 	KamataEngine::Sprite* sprite_ = nullptr;
 	// 3Dモデル
 	KamataEngine::Model* player_model_ = nullptr;
+
+	//敵モデル
+	KamataEngine::Model* enemy_model_ = nullptr;
 
 		// ワールドトランスフォーム
 	KamataEngine::WorldTransform worldTransform_;
@@ -56,6 +61,7 @@ private:
 	KamataEngine::Model* modelSkydome_ = nullptr;
 
 	Player* player_ = nullptr;
+	Enemy* enemy_ = nullptr;
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_ = nullptr;
 	CameraController* cameraController_ = nullptr;

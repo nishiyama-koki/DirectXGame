@@ -12,6 +12,8 @@ GameScene::~GameScene() {
 	delete modelSkydome_;
 	delete player_model_;
 	delete player_;
+	delete enemy_model_;
+	delete enemy_;
 	delete block_model_;
 	delete mapChipField_;
 	// ブロックのワールドトランスフォームの開放
@@ -29,11 +31,13 @@ void GameScene::Initialize() {
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandleBlock_ = TextureManager::Load("./Resources/block/block.png");
 	textureHandlePlayer_ = TextureManager::Load("./Resources/player/player.png");
+	textureHandleEnemy_ = TextureManager::Load("./Resources/enemy/enemy.png");
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 	//player_model_ = Model::Create();
 	//block_model_ = Model::Create();
 	player_model_ = Model::CreateFromOBJ("player", true);
+	enemy_model_ = Model::CreateFromOBJ("enemy", true);
 	block_model_ = Model::CreateFromOBJ("block", true);
 
 	// ワールドトランスフォームの初期化
@@ -57,6 +61,10 @@ void GameScene::Initialize() {
 	player_->Initialize(player_model_, textureHandlePlayer_, &camera_, playerPosition);
 	player_->SetMapChipField(mapChipField_);
 
+	//敵
+	enemy_ = new Enemy();
+	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(5, 18);
+	enemy_->Initialize(enemy_model_, textureHandleEnemy_, &camera_, enemyPosition);
 
 
 	// デバッグカメラの生成
@@ -106,6 +114,9 @@ void GameScene::Update() {
 	// 自キャラの更新
 	player_->Update();
 	
+	// 敵の更新
+	enemy_->Update();
+
 	// ブロックの更新
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
@@ -157,9 +168,11 @@ void GameScene::Draw() {
 	// スプライト描画前処理
 	Sprite::PreDraw();
 
-	// sprite_->Draw();
 	//  自キャラの描画
 	player_->Draw();
+
+	// 敵の描画
+	enemy_->Draw();
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
