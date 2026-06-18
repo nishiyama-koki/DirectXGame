@@ -2,6 +2,7 @@
 #include "KamataEngine.h"
 
 class MapChipField;
+class Enemy;
 
 class Player {
 public:
@@ -15,14 +16,24 @@ public:
 		kNumCorner
 	};
 
+	struct AABB {
+		KamataEngine::Vector3 min;
+		KamataEngine::Vector3 max;
+	};
+
+
 	void Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
 	void Update();
 	void Draw();
+
+	void OnCollision(const Enemy* enemy);
 
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
 
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
+	AABB GetAABB();
+	KamataEngine::Vector3 GetWorldPosition();
 
 	enum class LRDirection {
 		kRight,

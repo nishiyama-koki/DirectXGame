@@ -4,7 +4,6 @@
 
 KamataEngine::Vector3 Lerp(const KamataEngine::Vector3& start, const KamataEngine::Vector3& end, float t);
 
-
 KamataEngine::Matrix4x4 Multiply(const KamataEngine::Matrix4x4& m1, const KamataEngine::Matrix4x4& m2);
 KamataEngine::Matrix4x4 MakeIdentityMatrix4x4();
 KamataEngine::Matrix4x4 MakeTranslateMatrix(const KamataEngine::Vector3& translate);

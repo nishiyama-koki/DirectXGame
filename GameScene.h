@@ -26,6 +26,9 @@ public:
 
 	void GenerateBlocks();
 
+	void CheckAllCollisions();
+
+
 private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0;
@@ -39,6 +42,7 @@ private:
 
 	//敵モデル
 	KamataEngine::Model* enemy_model_ = nullptr;
+	std::list<Enemy*> enemies_;
 
 		// ワールドトランスフォーム
 	KamataEngine::WorldTransform worldTransform_;

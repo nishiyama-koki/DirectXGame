@@ -6,6 +6,7 @@
 #include <numbers>
 #include <cmath>
 
+using namespace KamataEngine;
 
 void Enemy::Initialize(KamataEngine::Model* model, uint32_t textureHandleEnemy, KamataEngine::Camera* camera, const KamataEngine::Vector3& position) {
 	// nullポインタチェック
@@ -23,6 +24,30 @@ void Enemy::Initialize(KamataEngine::Model* model, uint32_t textureHandleEnemy, 
 	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 }
+
+void Enemy::OnCollision(const Player* player) { 
+	(void)player;
+}
+
+
+KamataEngine::Vector3 Enemy::GetWorldPosition() {
+	Vector3 worldPos;
+	worldPos.x = worldTransform_.translation_.x;
+	worldPos.y = worldTransform_.translation_.y;
+	worldPos.z = worldTransform_.translation_.z;
+	return worldPos;
+}
+
+Enemy::AABB Enemy::GetAABB() {
+	Vector3 worldPos = GetWorldPosition();
+
+	AABB aabb;
+	aabb.min = {worldPos.x - kWidth / 2.0f + kBlank, worldPos.y - kHeight / 2.0f + kBlank, worldPos.z};
+	aabb.max = {worldPos.x + kWidth / 2.0f - kBlank, worldPos.y + kHeight / 2.0f - kBlank, worldPos.z};
+	return aabb;
+};
+
+
 
 void Enemy::Update() {
 	walkTimer_ += 1.0f / 60.0f;

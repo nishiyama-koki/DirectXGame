@@ -8,7 +8,7 @@
 
 using namespace KamataEngine;
 
-//05-08完了
+
 
 void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer, KamataEngine::Camera* camera, const KamataEngine::Vector3& position) {
 
@@ -26,6 +26,28 @@ void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer
 	worldTransform_.translation_ = position;
 	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+}
+
+KamataEngine::Vector3 Player::GetWorldPosition() {
+	Vector3 worldPos;
+	worldPos.x = worldTransform_.translation_.x;
+	worldPos.y = worldTransform_.translation_.y;
+	worldPos.z = worldTransform_.translation_.z;
+	return worldPos;
+}
+
+Player::AABB Player::GetAABB() {
+	Vector3 worldPos = GetWorldPosition();
+
+	AABB aabb;
+	aabb.min = {worldPos.x - kWidth / 2.0f + kBlank, worldPos.y - kHeight / 2.0f + kBlank, worldPos.z};
+	aabb.max = {worldPos.x + kWidth / 2.0f - kBlank, worldPos.y + kHeight / 2.0f - kBlank, worldPos.z};
+	return aabb;
+};
+
+void Player::OnCollision(const Enemy* enemy) {
+	(void)enemy; 
+	velocity_.y += 5.0f;
 }
 
 void Player::InputMove() {
@@ -89,7 +111,7 @@ void Player::InputMove() {
 		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 	}
 }
-
+#pragma region MapCollision
 void Player::CheckMapCollision(CollisionMapInfo& info) {
 	CheckMapCollisionUp(info);
 	CheckMapCollisionDown(info);
@@ -358,7 +380,7 @@ void Player::SwitchGroundingState(const CollisionMapInfo& info) {
 		}
 	}
 }
-
+#pragma endregion
 
 void Player::Update() {
 

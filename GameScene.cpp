@@ -13,7 +13,10 @@ GameScene::~GameScene() {
 	delete player_model_;
 	delete player_;
 	delete enemy_model_;
-	delete enemy_;
+	for (Enemy* enemy : enemies_) {
+		delete enemy;
+	}
+	enemies_.clear();
 	delete block_model_;
 	delete mapChipField_;
 	// ブロックのワールドトランスフォームの開放
@@ -34,8 +37,8 @@ void GameScene::Initialize() {
 	textureHandleEnemy_ = TextureManager::Load("./Resources/enemy/enemy.png");
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
-	//player_model_ = Model::Create();
-	//block_model_ = Model::Create();
+	// player_model_ = Model::Create();
+	// block_model_ = Model::Create();
 	player_model_ = Model::CreateFromOBJ("player", true);
 	enemy_model_ = Model::CreateFromOBJ("enemy", true);
 	block_model_ = Model::CreateFromOBJ("block", true);
@@ -49,7 +52,7 @@ void GameScene::Initialize() {
 	// 天球
 	skydome_ = new Skydome();
 	skydome_->Initialize(modelSkydome_);
-	
+
 	// マップチップフィールド
 	mapChipField_ = new MapChipField();
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
@@ -61,11 +64,13 @@ void GameScene::Initialize() {
 	player_->Initialize(player_model_, textureHandlePlayer_, &camera_, playerPosition);
 	player_->SetMapChipField(mapChipField_);
 
-	//敵
-	enemy_ = new Enemy();
-	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(5, 18);
-	enemy_->Initialize(enemy_model_, textureHandleEnemy_, &camera_, enemyPosition);
-
+	// 敵
+	for (int i = 0; i < 3; ++i) {
+		Enemy* newEnemy = new Enemy();
+		Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(5 + i * 2, 18);
+		newEnemy->Initialize(enemy_model_, textureHandleEnemy_, &camera_, enemyPosition);
+		enemies_.push_back(newEnemy);
+	}
 
 	// デバッグカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
@@ -77,7 +82,6 @@ void GameScene::Initialize() {
 	cameraController_->Reset();
 	CameraController::Rect movableCameraArea = {0.0f, 100.0f, 0.0f, 100.0f};
 	cameraController_->SetMovablearea(movableCameraArea);
-
 }
 
 void GameScene::GenerateBlocks() {
@@ -106,6 +110,20 @@ void GameScene::GenerateBlocks() {
 	}
 }
 
+void GameScene::CheckAllCollisions() {
+	Player::AABB aabb1;
+	Enemy::AABB aabb2;
+	aabb1 = player_->GetAABB();
+	for (Enemy* enemy : enemies_) {
+		aabb2 = enemy->GetAABB();
+		if (aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x && aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y) {
+			// hit!
+			player_->OnCollision(enemy);
+			enemy->OnCollision(player_);
+		}
+	}
+}
+
 void GameScene::Update() {
 
 	// 天球の更新
@@ -113,10 +131,13 @@ void GameScene::Update() {
 
 	// 自キャラの更新
 	player_->Update();
-	
-	// 敵の更新
-	enemy_->Update();
 
+	// 敵の更新
+	for (Enemy* enemy : enemies_) {
+		enemy->Update();
+	}
+
+	CheckAllCollisions();
 	// ブロックの更新
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
@@ -161,7 +182,6 @@ void GameScene::Update() {
 		// 行列を定数バッファに転送
 		camera_.TransferMatrix();
 	}
-
 }
 
 void GameScene::Draw() {
@@ -172,7 +192,9 @@ void GameScene::Draw() {
 	player_->Draw();
 
 	// 敵の描画
-	enemy_->Draw();
+	for (Enemy* enemy : enemies_) {
+		enemy->Draw();
+	}
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
