@@ -5,6 +5,7 @@
 #include "Skydome.h"
 #include "MapChipField.h"
 #include "CameraController.h"
+#include "DeathParticles.h"
 #include <vector>
 
 
@@ -64,10 +65,12 @@ private:
 	//天球
 	KamataEngine::Model* modelSkydome_ = nullptr;
 
+	KamataEngine::Model* particleModel_ = nullptr;
+
 	Player* player_ = nullptr;
 	Enemy* enemy_ = nullptr;
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_ = nullptr;
 	CameraController* cameraController_ = nullptr;
-
+	DeathParticles* deathParticles_ = nullptr;
 };

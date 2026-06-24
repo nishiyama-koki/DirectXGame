@@ -28,6 +28,8 @@ GameScene::~GameScene() {
 	worldTransformBlocks_.clear();
 	delete debugCamera_;
 	delete cameraController_;
+	delete deathParticles_;
+	delete skydome_;
 }
 
 void GameScene::Initialize() {
@@ -37,11 +39,10 @@ void GameScene::Initialize() {
 	textureHandleEnemy_ = TextureManager::Load("./Resources/enemy/enemy.png");
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
-	// player_model_ = Model::Create();
-	// block_model_ = Model::Create();
 	player_model_ = Model::CreateFromOBJ("player", true);
 	enemy_model_ = Model::CreateFromOBJ("enemy", true);
 	block_model_ = Model::CreateFromOBJ("block", true);
+	particleModel_ = Model::CreateFromOBJ("particle", true);
 
 	// ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -71,6 +72,11 @@ void GameScene::Initialize() {
 		newEnemy->Initialize(enemy_model_, textureHandleEnemy_, &camera_, enemyPosition);
 		enemies_.push_back(newEnemy);
 	}
+
+	//デスパーティクル
+	deathParticles_ = new DeathParticles();
+	deathParticles_->Initialize(particleModel_,&camera_, playerPosition);
+
 
 	// デバッグカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
@@ -137,6 +143,10 @@ void GameScene::Update() {
 		enemy->Update();
 	}
 
+	if (!deathParticles_->isFinished_) {
+		deathParticles_->Update();
+	}
+
 	CheckAllCollisions();
 	// ブロックの更新
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
@@ -201,6 +211,12 @@ void GameScene::Draw() {
 
 	// 3Dモデルの描画前処理
 	Model::PreDraw();
+
+
+
+	if (!deathParticles_->isFinished_) {
+		deathParticles_->Draw();
+	}
 
 	// 天球の描画
 	skydome_->Draw(camera_);
