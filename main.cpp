@@ -101,12 +101,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// ImGui受付終了--------------------------
 		imguiManager->End();
 
-		// 描画開始_____________________________
+		// 描画開始______________________________
 		dxCommon->PreDraw();
 
 		// タイトルシーンの描画===================
 		
-
 		DrawScene();
 
 		// 軸方向の表示
