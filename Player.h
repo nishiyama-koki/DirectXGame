@@ -49,6 +49,8 @@ public:
 		KamataEngine::Vector3 moveAmount = {};
 	};
 
+	bool isDead() const { return isDead_; }
+
 private:
 	// ワールド変換データ
 	KamataEngine::WorldTransform worldTransform_;
@@ -97,9 +99,8 @@ private:
 	//接地状態の切り替え処理
 	void SwitchGroundingState(const CollisionMapInfo& info);
 	static inline const float kAttenuationLanding = 0.2f;
-
-
-
 	static inline const float kBlank = 0.01f;
 	
+	bool isDead_ = false;
+
 };

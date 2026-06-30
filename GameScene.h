@@ -16,6 +16,13 @@ public:
 	GameScene();
 	~GameScene();
 
+	enum class Phase { 
+		kPlay,
+	    kDeath,
+	};
+
+	Phase phase_;
+
 	// 初期化
 	void Initialize();
 
@@ -29,6 +36,9 @@ public:
 
 	void CheckAllCollisions();
 
+	void ChangePhase();
+
+	bool isFinished() const { return finished_; }
 
 private:
 	// テクスチャハンドル
@@ -66,6 +76,8 @@ private:
 	KamataEngine::Model* modelSkydome_ = nullptr;
 
 	KamataEngine::Model* particleModel_ = nullptr;
+
+	bool finished_ = false;
 
 	Player* player_ = nullptr;
 	Enemy* enemy_ = nullptr;

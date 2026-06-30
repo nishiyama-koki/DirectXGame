@@ -1,8 +1,67 @@
 #include "GameScene.h"
 #include "KamataEngine.h"
+#include "TitleScene.h"
 #include <Windows.h>
 
 using namespace KamataEngine;
+
+TitleScene* titleScene = nullptr;
+GameScene* gameScene = nullptr;
+
+enum class Scene {
+
+	kUnknown = 0,
+
+	kTitle,
+	kGame,
+};
+
+Scene scene = Scene::kUnknown;
+
+void ChangeScene() {
+	switch (scene) {
+	case Scene::kTitle:
+		if (titleScene->isFinished()) {
+			scene = Scene::kGame;
+			delete titleScene;
+			titleScene = nullptr;
+			gameScene = new GameScene();
+			gameScene->Initialize();
+		}
+		break;
+	case Scene::kGame:
+		if (gameScene->isFinished()) {
+			scene = Scene::kTitle;
+			delete gameScene;
+			gameScene = nullptr;
+			titleScene = new TitleScene();
+			titleScene->Initialize();
+		}
+		break;
+	}
+}
+
+void UpdateScene() {
+	switch (scene) {
+	case Scene::kTitle:
+		titleScene->Update();
+		break;
+	case Scene::kGame:
+		gameScene->Update();
+		break;
+	}
+}
+
+void DrawScene() {
+	switch (scene) {
+	case Scene::kTitle:
+		titleScene->Draw();
+		break;
+	case Scene::kGame:
+		gameScene->Draw();
+		break;
+	}
+}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
@@ -13,10 +72,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// DirectXCommonインスタンスの取得
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
-	// ゲームシーンのインスタンス生成
-	GameScene* gameScene = new GameScene();
-	// ゲームシーンの初期化
-	gameScene->Initialize();
+	scene = Scene::kTitle;
+
+	titleScene = new TitleScene();
+	// タイトルシーンの初期化
+	titleScene->Initialize();
 
 	// ImGuiManagerインスタンスの取得
 	ImGuiManager* imguiManager = ImGuiManager::GetInstance();
@@ -31,8 +91,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// ImGui受付開始---------------------------
 		imguiManager->Begin();
 
-		// ゲームシーンの更新=====================
-		gameScene->Update();
+		// タイトルシーンの更新=====================
+		
+
+		ChangeScene();
+
+		UpdateScene();
 
 		// ImGui受付終了--------------------------
 		imguiManager->End();
@@ -40,8 +104,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// 描画開始_____________________________
 		dxCommon->PreDraw();
 
-		// ゲームシーンの描画===================
-		gameScene->Draw();
+		// タイトルシーンの描画===================
+		
+
+		DrawScene();
 
 		// 軸方向の表示
 		AxisIndicator::GetInstance()->Draw();
@@ -53,10 +119,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		dxCommon->PostDraw();
 	}
 
-	// ゲームシーンの開放
+	// タイトルシーンの開放
+	delete titleScene;
 	delete gameScene;
 	// nullptrの代入
-	gameScene = nullptr;
+	titleScene = nullptr;
 
 	// エンジンの終了処理
 	KamataEngine::Finalize();

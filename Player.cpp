@@ -47,7 +47,7 @@ Player::AABB Player::GetAABB() {
 
 void Player::OnCollision(const Enemy* enemy) {
 	(void)enemy; 
-	velocity_.y += 5.0f;
+	isDead_ = true;
 }
 
 void Player::InputMove() {
