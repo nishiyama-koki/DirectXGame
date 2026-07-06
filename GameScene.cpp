@@ -34,7 +34,7 @@ GameScene::~GameScene() {
 
 void GameScene::Initialize() {
 
-	phase_ = Phase::kPlay;
+	phase_ = Phase::kFadeIn;
 
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandleBlock_ = TextureManager::Load("./Resources/block/block.png");
@@ -75,11 +75,10 @@ void GameScene::Initialize() {
 		newEnemy->Initialize(enemy_model_, textureHandleEnemy_, &camera_, enemyPosition);
 		enemies_.push_back(newEnemy);
 	}
-
-	// デスパーティクル
 	deathParticles_ = new DeathParticles();
-	Vector3 playerPositionForParticles = player_->GetWorldPosition();
-	deathParticles_->Initialize(particleModel_, &camera_, playerPositionForParticles);
+	fade_ = new Fade();
+	fade_->Initialize();                      
+	fade_->Start(Fade::Status::FadeIn, 1.0f); 
 
 	// デバッグカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
@@ -92,13 +91,11 @@ void GameScene::Initialize() {
 	CameraController::Rect movableCameraArea = {0.0f, 100.0f, 0.0f, 100.0f};
 	cameraController_->SetMovablearea(movableCameraArea);
 }
-
 void GameScene::GenerateBlocks() {
 	// 要素数
 	uint32_t numBlockVirtical = mapChipField_->GetNumBlockVirtical();
 	uint32_t numBlockHorizontal = mapChipField_->GetNumBlockHorizontal();
 
-	//
 	worldTransformBlocks_.resize(numBlockVirtical);
 	for (uint32_t i = 0; i < numBlockVirtical; ++i) {
 		worldTransformBlocks_[i].resize(numBlockHorizontal);
@@ -118,7 +115,6 @@ void GameScene::GenerateBlocks() {
 		}
 	}
 }
-
 void GameScene::CheckAllCollisions() {
 	Player::AABB aabb1;
 	Enemy::AABB aabb2;
@@ -135,7 +131,41 @@ void GameScene::CheckAllCollisions() {
 
 void GameScene::Update() {
 	ChangePhase();
+	if (fade_) {
+		fade_->Update();
+	}
+
 	switch (phase_) {
+	case Phase::kFadeIn:
+#pragma region kFadeIn
+		// 天球の更新
+		skydome_->Update();
+		player_->Update(); 
+		for (Enemy* enemy : enemies_) {
+			enemy->Update(); 
+		}
+
+		for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
+			for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
+				if (!worldTransformBlock)
+					continue;
+				worldTransformBlock->matWorld_ = MakeAffineMatrix(worldTransformBlock->scale_, worldTransformBlock->rotation_, worldTransformBlock->translation_);
+				worldTransformBlock->TransferMatrix();
+			}
+		}
+		if (isDebugCameraActive_) {
+			debugCamera_->Update();
+			camera_.matView = debugCamera_->GetCamera().matView;
+			camera_.matProjection = debugCamera_->GetCamera().matProjection;
+		} else {
+			cameraController_->Update();
+			camera_.matView = cameraController_->GetCamera().matView;
+			camera_.matProjection = cameraController_->GetCamera().matProjection;
+		}
+		camera_.TransferMatrix();
+		break;
+#pragma endregion
+
 	case Phase::kPlay:
 #pragma region kPlay
 		// 天球の更新
@@ -166,9 +196,8 @@ void GameScene::Update() {
 
 		// デバッグカメラの更新
 		debugCamera_->Update();
-
 #ifdef _DEBUG
-		// デバッグカメラの有効/無効切り替え Cキーを押すたびに切り替える
+		// デバッグカメラの切り替え Cキー
 		if (Input::GetInstance()->TriggerKey(DIK_C)) {
 			isDebugCameraActive_ = !isDebugCameraActive_;
 		}
@@ -195,6 +224,7 @@ void GameScene::Update() {
 		}
 		break;
 #pragma endregion
+
 	case Phase::kDeath:
 #pragma region kDeath
 		// 天球の更新
@@ -225,11 +255,23 @@ void GameScene::Update() {
 		camera_.TransferMatrix();
 		break;
 #pragma endregion
+	case Phase::kFadeOut:
+#pragma region kFadeOut
+		skydome_->Update();
+		camera_.TransferMatrix();
+		break;
+#pragma endregion
 	}
 }
 
 void GameScene::ChangePhase() {
 	switch (phase_) {
+	case Phase::kFadeIn:
+		if (fade_ && fade_->IsFinished()) {
+			phase_ = Phase::kPlay;
+		}
+		break;
+
 	case Phase::kPlay:
 		if (player_->isDead()) {
 			phase_ = Phase::kDeath;
@@ -237,8 +279,15 @@ void GameScene::ChangePhase() {
 			deathParticles_->Initialize(particleModel_, &camera_, playerPositionForParticles);
 		}
 		break;
+
 	case Phase::kDeath:
 		if (deathParticles_ && deathParticles_->isFinished_) {
+			phase_ = Phase::kFadeOut;
+			fade_->Start(Fade::Status::FadeOut, 1.0f);
+		}
+		break;
+	case Phase::kFadeOut:
+		if (fade_ && fade_->IsFinished()) {
 			finished_ = true;
 		}
 		break;
@@ -249,9 +298,7 @@ void GameScene::Draw() {
 	// スプライト描画前処理
 	Sprite::PreDraw();
 
-	if (player_->isDead()) {
-	} else {
-		// 自キャラの描画
+	if (phase_ == Phase::kPlay || phase_ == Phase::kFadeIn) {
 		player_->Draw();
 	}
 
@@ -265,12 +312,11 @@ void GameScene::Draw() {
 
 	// 3Dモデルの描画前処理
 	Model::PreDraw();
-	switch (phase_) {
-	case Phase::kDeath:
+
+	if (phase_ == Phase::kDeath || phase_ == Phase::kFadeOut) {
 		if (!deathParticles_->isFinished_) {
 			deathParticles_->Draw();
 		}
-		break;
 	}
 
 	// 天球の描画
@@ -287,4 +333,10 @@ void GameScene::Draw() {
 
 	// 3Dモデル描画後処理
 	Model::PostDraw();
+
+	Sprite::PreDraw();
+	if (fade_) {
+		fade_->Draw();
+	}
+	Sprite::PostDraw();
 }

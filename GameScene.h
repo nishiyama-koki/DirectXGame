@@ -6,6 +6,7 @@
 #include "MapChipField.h"
 #include "CameraController.h"
 #include "DeathParticles.h"
+#include "Fade.h"
 #include <vector>
 
 
@@ -17,8 +18,10 @@ public:
 	~GameScene();
 
 	enum class Phase { 
+		kFadeIn,
 		kPlay,
 	    kDeath,
+		kFadeOut,
 	};
 
 	Phase phase_;
@@ -85,4 +88,5 @@ private:
 	MapChipField* mapChipField_ = nullptr;
 	CameraController* cameraController_ = nullptr;
 	DeathParticles* deathParticles_ = nullptr;
+	Fade* fade_ = nullptr;
 };
