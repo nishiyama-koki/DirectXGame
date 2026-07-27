@@ -1,19 +1,24 @@
 #pragma once
 #include "KamataEngine.h"
+#include <algorithm>
 
 class MapChipField;
 class Enemy;
 
 class Player {
 public:
-	enum Corner {
-		kRightBottom, // 右下
-		kLeftBottom,  // 左下
-		kRightTop,    // 右上
-		kLeftTop,     // 左上
+	enum Corner { kRightBottom, kLeftBottom, kRightTop, kLeftTop, kNumCorner };
 
-		// 要素数
-		kNumCorner
+	enum class Behavior {
+		kRoot,
+		kAttack,
+		kUnknown,
+	};
+
+	enum class AttackPhase {
+		charge,
+		dash,
+		afterglow,
 	};
 
 	struct AABB {
@@ -21,8 +26,20 @@ public:
 		KamataEngine::Vector3 max;
 	};
 
+	enum class LRDirection {
+		kRight,
+		kLeft,
+	};
+
+	struct CollisionMapInfo {
+		bool isCeiling_ = false;
+		bool isWallTouch_ = false;
+		bool isFloorTouch_ = false;
+		KamataEngine::Vector3 moveAmount = {};
+	};
 
 	void Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
+	void InitializeAttackEffect(KamataEngine::Model* modelAttack, uint32_t textureHandleAttack);
 	void Update();
 	void Draw();
 
@@ -35,30 +52,21 @@ public:
 	AABB GetAABB();
 	KamataEngine::Vector3 GetWorldPosition();
 
-	enum class LRDirection {
-		kRight,
-		kLeft,
-	};
-
 	void InputMove();
-
-	struct CollisionMapInfo {
-		bool isCeiling_ = false;    // 天井
-		bool isWallTouch_ = false;  // 壁
-		bool isFloorTouch_ = false; // 床
-		KamataEngine::Vector3 moveAmount = {};
-	};
 
 	bool isDead() const { return isDead_; }
 
-private:
-	// ワールド変換データ
-	KamataEngine::WorldTransform worldTransform_;
-	// モデル
-	KamataEngine::Model* model_ = nullptr;
-	// テクスチャハンドル
-	uint32_t textureHandlePlayer_ = 0;
+	void BehaviorRootInitialize();
+	void BehaviorRootUpdate();
+	void BehaviorAttackInitialize();
+	void BehaviorAttackUpdate();
 
+private:
+	KamataEngine::WorldTransform worldTransform_;
+	KamataEngine::Model* model_ = nullptr;
+	uint32_t textureHandlePlayer_ = 0;
+	uint32_t textureHandleAttack_ = 0;
+	bool isAttackEffectActive_ = false;
 	KamataEngine::Camera* camera_ = nullptr;
 
 	static inline const float kAcceleration = 0.02f;
@@ -68,7 +76,6 @@ private:
 
 	LRDirection lrDirection_ = LRDirection::kRight;
 
-	// 旋回制御
 	float turnFirstRotationY_ = 0.0f;
 	float turnTimer_ = 0.0f;
 	static inline const float kTimeTurn = 0.3f;
@@ -79,28 +86,48 @@ private:
 	static inline const float kLimitFallSpeed = 0.5f;
 	static inline const float kJumpAcceleration = 0.3f;
 
-	// マップチップによるフィールド
 	MapChipField* mapChipField_ = nullptr;
 
-	// キャラクターの当たり判定サイズ
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
 
-	// マップ全体の衝突判定
 	void CheckMapCollision(CollisionMapInfo& info);
 	void CheckMapCollisionUp(CollisionMapInfo& info);
 	void CheckMapCollisionDown(CollisionMapInfo& info);
 	void CheckMapCollisionRight(CollisionMapInfo& info);
 	void CheckMapCollisionLeft(CollisionMapInfo& info);
-      
-	void CheckCeilingCollision(const CollisionMapInfo& info); 
+
+	void CheckCeilingCollision(const CollisionMapInfo& info);
 	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
 
-	//接地状態の切り替え処理
 	void SwitchGroundingState(const CollisionMapInfo& info);
 	static inline const float kAttenuationLanding = 0.2f;
 	static inline const float kBlank = 0.01f;
-	
+
 	bool isDead_ = false;
 
+	Behavior behavior_ = Behavior::kRoot;
+	Behavior behaviorRequest_ = Behavior::kUnknown;
+
+	AttackPhase attackPhase_ = AttackPhase::charge;
+	uint32_t attackCounter_ = 0;
+
+	static inline const uint32_t kChargeDuration = 5;
+	static inline const uint32_t kDashDuration = 10;
+	static inline const uint32_t kAfterglowDuration = 10;
+	static inline const float kDashSpeed = 0.5f;
+
+	//攻撃エフェクト
+	KamataEngine::Model* modelAttack_ = nullptr;
+	KamataEngine::WorldTransform worldTransformAttack_;
+	
+	static float EaseIn(float start, float end, float t) {
+		t = std::clamp(t, 0.0f, 1.0f);
+		return start + (end - start) * (t * t);
+	}
+
+	static float EaseOut(float start, float end, float t) {
+		t = std::clamp(t, 0.0f, 1.0f);
+		return start + (end - start) * (1.0f - (1.0f - t) * (1.0f - t));
+	}
 };

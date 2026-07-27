@@ -48,12 +48,13 @@ private:
 	uint32_t textureHandle_ = 0;
 	uint32_t textureHandleBlock_ = 0;
 	uint32_t textureHandlePlayer_ = 0;
+	uint32_t textureHandleAttack_ = 0;
 	uint32_t textureHandleEnemy_ = 0;
 	// スプライト
 	KamataEngine::Sprite* sprite_ = nullptr;
 	// 3Dモデル
 	KamataEngine::Model* player_model_ = nullptr;
-
+	KamataEngine::Model* attack_model_ = nullptr;
 	//敵モデル
 	KamataEngine::Model* enemy_model_ = nullptr;
 	std::list<Enemy*> enemies_;

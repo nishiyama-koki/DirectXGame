@@ -12,7 +12,7 @@ void DeathParticles::Initialize(KamataEngine::Model* model, KamataEngine::Camera
 	for (auto& worldTransform : worldTransforms_) {
 		worldTransform.Initialize();
 		worldTransform.translation_ = position;
-		worldTransform.scale_ = {0.5f, 0.5f, 0.5f};
+		//worldTransform.scale_ = {0.5f, 0.5f, 0.5f};
 	}
 	objectColor_.Initialize();
 	color_ = {1.0f, 1.0f, 1.0f, 1.0f};

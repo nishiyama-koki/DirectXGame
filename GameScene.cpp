@@ -10,6 +10,7 @@ GameScene::GameScene() {}
 GameScene::~GameScene() {
 	delete sprite_;
 	delete modelSkydome_;
+	delete attack_model_;
 	delete player_model_;
 	delete player_;
 	delete enemy_model_;
@@ -39,13 +40,15 @@ void GameScene::Initialize() {
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandleBlock_ = TextureManager::Load("./Resources/block/block.png");
 	textureHandlePlayer_ = TextureManager::Load("./Resources/player/player.png");
+	textureHandleAttack_ = TextureManager::Load("./Resources/hit_effect/hit_effect.png");
 	textureHandleEnemy_ = TextureManager::Load("./Resources/enemy/enemy.png");
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 	player_model_ = Model::CreateFromOBJ("player", true);
+	attack_model_ = Model::CreateFromOBJ("hit_effect", true);
 	enemy_model_ = Model::CreateFromOBJ("enemy", true);
 	block_model_ = Model::CreateFromOBJ("block", true);
-	particleModel_ = Model::CreateFromOBJ("particle", true);
+	particleModel_ = Model::CreateFromOBJ("deathParticle", true);
 
 	// ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
@@ -67,6 +70,7 @@ void GameScene::Initialize() {
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
 	player_->Initialize(player_model_, textureHandlePlayer_, &camera_, playerPosition);
 	player_->SetMapChipField(mapChipField_);
+	player_->InitializeAttackEffect(attack_model_, textureHandleAttack_);
 
 	// 敵
 	for (int i = 0; i < 3; ++i) {
@@ -295,6 +299,11 @@ void GameScene::ChangePhase() {
 }
 
 void GameScene::Draw() {
+
+	Model::PreDraw();
+	skydome_->Draw(camera_);
+	Model::PostDraw();
+
 	// スプライト描画前処理
 	Sprite::PreDraw();
 
@@ -320,7 +329,7 @@ void GameScene::Draw() {
 	}
 
 	// 天球の描画
-	skydome_->Draw(camera_);
+	//skydome_->Draw(camera_);
 
 	// ブロックの描画
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {

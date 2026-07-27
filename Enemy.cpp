@@ -22,7 +22,7 @@ void Enemy::Initialize(KamataEngine::Model* model, uint32_t textureHandleEnemy, 
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
 	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
-	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f + std::numbers::pi_v<float>;
 }
 
 void Enemy::OnCollision(const Player* player) { 
