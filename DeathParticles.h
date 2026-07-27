@@ -28,5 +28,4 @@ private:
 	static inline const float kDuration = 1.5f;
 	static inline const float kSpeed = 0.1f;
 	static inline const float kAngleUnit = (2 * 3.14159265358979323846f) / kNumParticles;
-
 };

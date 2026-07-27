@@ -78,8 +78,8 @@ void GameScene::Initialize() {
 
 	// デスパーティクル
 	deathParticles_ = new DeathParticles();
-	Vector3 playerPositionForParticles = player_->GetWorldPosition();
-	deathParticles_->Initialize(particleModel_, &camera_, playerPositionForParticles);
+	/*Vector3 playerPositionForParticles = player_->GetWorldPosition();
+	deathParticles_->Initialize(particleModel_, &camera_, playerPositionForParticles);*/
 
 	// デバッグカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
