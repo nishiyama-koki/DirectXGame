@@ -41,7 +41,7 @@ void Enemy::OnCollision(const Player* player) {
 
 	// プレイヤーが攻撃状態である場合
 	if (player->IsAttacking()) {
-		// 敵のふるまいをデス演出状態に切り替え
+
 		isCollisionDisabled_ = true; // 衝突判定を無効化
 		behaviorRequest_ = Behavior::kDeath;
 		Vector3 enemyPos = worldTransform_.translation_;
@@ -200,7 +200,6 @@ void Enemy::BehaviorRootUpdate() {
 	// 移動量の更新
 	velocity_ = collisionMapInfo.moveAmount;
 
-	// 壁に当たった場合は進行方向とY軸角度（振り向き）を反転させる
 	if (collisionMapInfo.isWallTouch_) {
 		if (lrDirection_ == LRDirection::kLeft) {
 			lrDirection_ = LRDirection::kRight;
@@ -229,7 +228,6 @@ void Enemy::BehaviorDeathInitialize() {
 	// デスアニメーション用タイマーのリセット
 	deathTimer_ = 0.0f;
 
-	// デス演出開始時点の角度を保持
 	deathStartRotationX_ = worldTransform_.rotation_.x;
 	deathStartRotationY_ = worldTransform_.rotation_.y;
 }
@@ -237,22 +235,13 @@ void Enemy::BehaviorDeathInitialize() {
 void Enemy::BehaviorDeathUpdate() {
 	// アニメーションタイマーの加算
 	deathTimer_ += 1.0f / 60.0f;
-
-	// 進行度 t (0.0 ～ 1.0 にクランプ)
 	float t = std::clamp(deathTimer_ / kDeathDuration, 0.0f, 1.0f);
-
-	// イージング関数（EaseOut: 勢いよく回転して徐々に減速）
 	float easeT = 1.0f - (1.0f - t) * (1.0f - t);
-
-	// Y軸回りの回転（例：演出完了までに1回転 = 2πラジアン 追加回転）
 	float targetRotationY = deathStartRotationY_ + std::numbers::pi_v<float> * 2.0f;
 	worldTransform_.rotation_.y = (1.0f - easeT) * deathStartRotationY_ + easeT * targetRotationY;
-
-	// X軸回りの回転（例：後方や横に倒れるような回転 = π/2ラジアン 倒す）
 	float targetRotationX = deathStartRotationX_ + (std::numbers::pi_v<float> / 2.0f);
 	worldTransform_.rotation_.x = (1.0f - easeT) * deathStartRotationX_ + easeT * targetRotationX;
 
-	// タイマーが一定時間に達したら死亡フラグを立てる
 	if (deathTimer_ >= kDeathDuration) {
 		isEnemyDead_ = true;
 	}

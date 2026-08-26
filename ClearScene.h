@@ -7,8 +7,6 @@ public:
 	void Initialize();
 	void Update();
 	void Draw();
-
-	// シーン終了フラグ取得
 	bool IsFinished() const { return finished_; }
 
 	enum class Phase {
@@ -34,9 +32,9 @@ private:
 	KamataEngine::WorldTransform playerWorldTransform_;
 	KamataEngine::Camera camera_;
 
-	// バウンド演出用変数
+	// バウンド演出用
 	float bounceTimer_ = 0.0f;
-	float basePosY_ = -1.0f; // 跳ねる基準となる高さ
+	float basePosY_ = -1.0f; 
 
 	Fade* fade_ = nullptr;
 };

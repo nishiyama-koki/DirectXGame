@@ -15,9 +15,9 @@ private:
 	uint32_t textureHandleBubble_ = 0;
 	KamataEngine::Camera* camera_ = nullptr;
 
-	float moveSpeedY_ = 0.05f; // 上昇速度
-	float timer_ = 0.0f;       // 左右の揺れ用タイマー
-	float maxLifeTime_ = 3.0f; // 生存時間（秒）
+	float moveSpeedY_ = 0.05f;
+	float timer_ = 0.0f;      
+	float maxLifeTime_ = 3.0f;
 	float currentLifeTime_ = 0.0f;
 	bool isDead_ = false;
 };
