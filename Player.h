@@ -43,6 +43,7 @@ public:
 	void Update();
 	void Draw();
 
+	void OnCollision();
 	void OnCollision(const Enemy* enemy);
 
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
@@ -50,16 +51,18 @@ public:
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
 	AABB GetAABB();
-	KamataEngine::Vector3 GetWorldPosition();
+	const KamataEngine::Vector3& GetWorldPosition() const { return worldTransform_.translation_; };
 
 	void InputMove();
 
 	bool isDead() const { return isDead_; }
+	bool IsAttacking() const { return isAttackEffectActive_ && modelAttack_ != nullptr; }
 
 	void BehaviorRootInitialize();
 	void BehaviorRootUpdate();
 	void BehaviorAttackInitialize();
 	void BehaviorAttackUpdate();
+
 
 private:
 	KamataEngine::WorldTransform worldTransform_;
@@ -71,7 +74,7 @@ private:
 
 	static inline const float kAcceleration = 0.02f;
 	static inline const float kAttenuation = 0.05f;
-	static inline const float kLimitRunSpeed = 0.3f;
+	static inline const float kLimitRunSpeed = 0.17f;
 	KamataEngine::Vector3 velocity_ = {};
 
 	LRDirection lrDirection_ = LRDirection::kRight;
@@ -115,7 +118,7 @@ private:
 	static inline const uint32_t kChargeDuration = 5;
 	static inline const uint32_t kDashDuration = 10;
 	static inline const uint32_t kAfterglowDuration = 10;
-	static inline const float kDashSpeed = 0.5f;
+	static inline const float kDashSpeed = 0.3f;
 
 	//攻撃エフェクト
 	KamataEngine::Model* modelAttack_ = nullptr;
@@ -130,4 +133,15 @@ private:
 		t = std::clamp(t, 0.0f, 1.0f);
 		return start + (end - start) * (1.0f - (1.0f - t) * (1.0f - t));
 	}
+
+	// --- 体力・無敵時間パラメータ ---
+	int hp_ = 3;                                          // 初期体力
+	const int kMaxHp = 3;                                 // 最大体力
+	float invincibleTimer_ = 0.0f;                        // 無敵タイマー（秒）
+	static inline const float kInvincibleDuration = 2.0f; // 無敵時間（1.0秒間）
+public:
+	// 体力取得用のゲッター（UI描画などで使用可能）
+	int GetHp() const { return hp_; }
+	bool IsInvincible() const { return invincibleTimer_ > 0.0f; }
+
 };

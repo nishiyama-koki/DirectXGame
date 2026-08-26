@@ -20,6 +20,12 @@ void Player::Initialize(KamataEngine::Model* model, uint32_t textureHandlePlayer
 	worldTransform_.translation_ = position;
 	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+
+	// 追加: 体力と無敵時間の初期化
+	hp_ = kMaxHp;
+	invincibleTimer_ = 0.0f;
+	isDead_ = false;
+
 }
 
 void Player::InitializeAttackEffect(KamataEngine::Model* modelAttack, uint32_t textureHandleAttack){
@@ -33,7 +39,7 @@ void Player::InitializeAttackEffect(KamataEngine::Model* modelAttack, uint32_t t
 
 
 
-KamataEngine::Vector3 Player::GetWorldPosition() { return worldTransform_.translation_; }
+//KamataEngine::Vector3 Player::GetWorldPosition() { return worldTransform_.translation_; }
 
 Player::AABB Player::GetAABB() {
 	Vector3 worldPos = GetWorldPosition();
@@ -44,51 +50,72 @@ Player::AABB Player::GetAABB() {
 	return aabb;
 }
 
+void Player::OnCollision() {
+	// 攻撃中または無敵時間中の場合はダメージ無効
+	if ((isAttackEffectActive_ && modelAttack_) || invincibleTimer_ > 0.0f) {
+		return;
+	}
+
+	hp_--;
+
+	if (hp_ <= 0) {
+		hp_ = 0;
+		isDead_ = true;
+	} else {
+		invincibleTimer_ = kInvincibleDuration;
+	}
+}
+
 void Player::OnCollision(const Enemy* enemy) {
 	(void)enemy;
-	isDead_ = true;
+	OnCollision(); // 共通の被弾処理を実行
 }
 
 void Player::InputMove() {
-	if (onGround_) {
-		Vector3 acceleration = {};
+	Vector3 acceleration = {};
 
-		if (Input::GetInstance()->PushKey(DIK_D)) {
-			if (velocity_.x < 0.0f) {
-				velocity_.x *= (1.0f - kAttenuation);
-			}
-			if (lrDirection_ != LRDirection::kRight) {
-				lrDirection_ = LRDirection::kRight;
-				turnFirstRotationY_ = worldTransform_.rotation_.y;
-				turnTimer_ = 1.0f / 60.0f;
-			}
-
-			acceleration.x += kAcceleration;
-			velocity_.x += acceleration.x;
-		} else if (Input::GetInstance()->PushKey(DIK_A)) {
-			if (velocity_.x > 0.0f) {
-				velocity_.x *= (1.0f - kAttenuation);
-			}
-			if (lrDirection_ != LRDirection::kLeft) {
-				lrDirection_ = LRDirection::kLeft;
-				turnFirstRotationY_ = worldTransform_.rotation_.y;
-				turnTimer_ = 1.0f / 60.0f;
-			}
-
-			acceleration.x -= kAcceleration;
-			velocity_.x += acceleration.x;
-		} else {
+	// 左右移動のキー入力（地上・空中問わず処理）
+	if (Input::GetInstance()->PushKey(DIK_D) || Input::GetInstance()->PushKey(DIK_RIGHT)) {
+		if (velocity_.x < 0.0f) {
 			velocity_.x *= (1.0f - kAttenuation);
 		}
+		if (lrDirection_ != LRDirection::kRight) {
+			lrDirection_ = LRDirection::kRight;
+			turnFirstRotationY_ = worldTransform_.rotation_.y;
+			turnTimer_ = 1.0f / 60.0f;
+		}
 
-		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+		acceleration.x += kAcceleration;
+		velocity_.x += acceleration.x;
+	} else if (Input::GetInstance()->PushKey(DIK_A) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+		if (velocity_.x > 0.0f) {
+			velocity_.x *= (1.0f - kAttenuation);
+		}
+		if (lrDirection_ != LRDirection::kLeft) {
+			lrDirection_ = LRDirection::kLeft;
+			turnFirstRotationY_ = worldTransform_.rotation_.y;
+			turnTimer_ = 1.0f / 60.0f;
+		}
+
+		acceleration.x -= kAcceleration;
+		velocity_.x += acceleration.x;
+	} else {
+		// キーを押していない時は減速
+		velocity_.x *= (1.0f - kAttenuation);
+	}
+
+	// X軸移動速度制限
+	velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed, kLimitRunSpeed);
+
+	// 地上と空中による処理の分岐
+	if (onGround_) {
+		// ジャンプ処理
+		if (Input::GetInstance()->PushKey(DIK_SPACE) || Input::GetInstance()->PushKey(DIK_UP) || Input::GetInstance()->PushKey(DIK_W)) {
 			velocity_.y += kJumpAcceleration;
 			onGround_ = false;
 		}
-
-		velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed, kLimitRunSpeed);
-
 	} else {
+		// 重力加速度の適用
 		velocity_.y -= kGravityAcceleration;
 		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 	}
@@ -449,6 +476,13 @@ void Player::BehaviorAttackUpdate() {
 }
 
 void Player::Update() {
+	// 無敵タイマーのカウントダウン処理を追加
+	if (invincibleTimer_ > 0.0f) {
+		invincibleTimer_ -= 1.0f / 60.0f;
+		if (invincibleTimer_ < 0.0f) {
+			invincibleTimer_ = 0.0f;
+		}
+	}
 	if (behaviorRequest_ != Behavior::kUnknown) {
 		behavior_ = behaviorRequest_;
 		switch (behavior_) {
@@ -486,6 +520,12 @@ void Player::Update() {
 }
 
 void Player::Draw() {
+	if (invincibleTimer_ > 0.0f) {
+		int timerInFrames = static_cast<int>(invincibleTimer_ * 60.0f);
+		if ((timerInFrames / 4) % 2 == 0) {
+			return; // 描画をスキップ（点滅演出）
+		}
+	}
 	KamataEngine::Model::PreDraw();
 	model_->Draw(worldTransform_, *camera_, textureHandlePlayer_);
 	if (isAttackEffectActive_ && modelAttack_) {

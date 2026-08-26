@@ -5,8 +5,8 @@
 using namespace KamataEngine;
 
 void DeathParticles::Initialize(KamataEngine::Model* model, KamataEngine::Camera* camera, const KamataEngine::Vector3& position) {
-	assert(model);
-	assert(camera);
+	//assert(model);
+	//assert(camera);
 	model_ = model;
 	camera_ = camera;
 	for (auto& worldTransform : worldTransforms_) {

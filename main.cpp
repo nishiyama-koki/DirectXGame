@@ -1,3 +1,4 @@
+#include "ClearScene.h"
 #include "GameScene.h"
 #include "KamataEngine.h"
 #include "TitleScene.h"
@@ -7,6 +8,7 @@ using namespace KamataEngine;
 
 TitleScene* titleScene = nullptr;
 GameScene* gameScene = nullptr;
+ClearScene* clearScene = nullptr;
 
 enum class Scene {
 
@@ -14,6 +16,7 @@ enum class Scene {
 
 	kTitle,
 	kGame,
+	kClear,
 };
 
 Scene scene = Scene::kUnknown;
@@ -30,10 +33,30 @@ void ChangeScene() {
 		}
 		break;
 	case Scene::kGame:
-		if (gameScene->isFinished()) {
+		if (gameScene->IsFinished()) {
+			// ボスを撃破してクリアした場合
+			if (gameScene->IsClear()) {
+				scene = Scene::kClear;
+				delete gameScene;
+				gameScene = nullptr;
+				clearScene = new ClearScene();
+				clearScene->Initialize();
+			}
+			// ゲームオーバーの場合タイトルへ戻る
+			else {
+				scene = Scene::kTitle;
+				delete gameScene;
+				gameScene = nullptr;
+				titleScene = new TitleScene();
+				titleScene->Initialize();
+			}
+		}
+		break;
+	case Scene::kClear:
+		if (clearScene->IsFinished()) {
 			scene = Scene::kTitle;
-			delete gameScene;
-			gameScene = nullptr;
+			delete clearScene;
+			clearScene = nullptr;
 			titleScene = new TitleScene();
 			titleScene->Initialize();
 		}
@@ -49,6 +72,9 @@ void UpdateScene() {
 	case Scene::kGame:
 		gameScene->Update();
 		break;
+	case Scene::kClear:
+		clearScene->Update();
+		break;
 	}
 }
 
@@ -60,6 +86,9 @@ void DrawScene() {
 	case Scene::kGame:
 		gameScene->Draw();
 		break;
+	case Scene::kClear:
+		clearScene->Draw();
+		break;
 	}
 }
 
@@ -67,7 +96,7 @@ void DrawScene() {
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// エンジンの初期化
-	KamataEngine::Initialize(L"GC2A_03_ニシヤマ_コウキ_AL3");
+	KamataEngine::Initialize(L"GC2A_03_ニシヤマ_コウキ_GYOGYOGYO!!");
 
 	// DirectXCommonインスタンスの取得
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
@@ -92,7 +121,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		imguiManager->Begin();
 
 		// タイトルシーンの更新=====================
-		
 
 		ChangeScene();
 
@@ -105,7 +133,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		dxCommon->PreDraw();
 
 		// タイトルシーンの描画===================
-		
+
 		DrawScene();
 
 		// 軸方向の表示
