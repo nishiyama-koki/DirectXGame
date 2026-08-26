@@ -4,11 +4,11 @@
 
 class Player;
 class GameScene;
-class MapChipField; // 前方宣言
+class MapChipField; 
 
 class Enemy {
 public:
-	// ビヘイビア（行動状態）
+
 	enum class Behavior {
 		kRoot,    // 通常状態
 		kDeath,   // デス演出状態
@@ -42,8 +42,6 @@ public:
 	KamataEngine::Vector3 GetWorldPosition();
 	AABB GetAABB();
 	void OnCollision(const Player* player);
-
-	// 各ビヘイビアの初期化・更新
 	void BehaviorRootInitialize();
 	void BehaviorRootUpdate();
 	void BehaviorDeathInitialize();
@@ -75,12 +73,10 @@ private:
 	static inline const float kHeight = 0.8f;
 	static inline const float kBlank = 0.01f;
 
-	// デス演出用の変数
+	// デス演出用
 	float deathTimer_ = 0.0f;
-	static inline const float kDeathDuration = 0.5f; // デス演出の長さ（秒単位）
-	bool isCollisionDisabled_ = false;               // デス演出中は衝突判定を無効化するフラグ
-
-	// イージング用の初期回転角保存用
+	static inline const float kDeathDuration = 0.5f; 
+	bool isCollisionDisabled_ = false;               
 	float deathStartRotationX_ = 0.0f;
 	float deathStartRotationY_ = 0.0f;
 
@@ -92,13 +88,10 @@ private:
 	uint32_t textureHandleEnemy_ = 0;
 	KamataEngine::Camera* camera_ = nullptr;
 
-	// ビヘイビア関連
 	Behavior behavior_ = Behavior::kRoot;
 	Behavior behaviorRequest_ = Behavior::kUnknown;
 
 	GameScene* gameScene_ = nullptr;
-
-	// マップ当たり判定関連
 	MapChipField* mapChipField_ = nullptr;
 	void CheckMapCollision(CollisionMapInfo& info);
 	void CheckMapCollisionRight(CollisionMapInfo& info);

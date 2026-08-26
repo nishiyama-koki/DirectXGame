@@ -134,13 +134,12 @@ private:
 		return start + (end - start) * (1.0f - (1.0f - t) * (1.0f - t));
 	}
 
-	// --- 体力・無敵時間パラメータ ---
-	int hp_ = 3;                                          // 初期体力
-	const int kMaxHp = 3;                                 // 最大体力
-	float invincibleTimer_ = 0.0f;                        // 無敵タイマー（秒）
-	static inline const float kInvincibleDuration = 2.0f; // 無敵時間（1.0秒間）
+	//体力無敵時間
+	int hp_ = 3;                                          
+	const int kMaxHp = 3;                                 
+	float invincibleTimer_ = 0.0f;                        
+	static inline const float kInvincibleDuration = 2.0f; 
 public:
-	// 体力取得用のゲッター（UI描画などで使用可能）
 	int GetHp() const { return hp_; }
 	bool IsInvincible() const { return invincibleTimer_ > 0.0f; }
 

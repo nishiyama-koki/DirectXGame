@@ -267,7 +267,6 @@ void Boss::BehaviorDeathUpdate() {
 
 void Boss::Draw() {
 	KamataEngine::Model::PreDraw();
-	// 完全死亡時、または点滅非表示時、あるいは初期待機状態は描画しない
 	if (isBossDead_ || !isVisible_ || phase_ == Phase::kWaiting || !camera_ || !model_) {
 		return;
 	}

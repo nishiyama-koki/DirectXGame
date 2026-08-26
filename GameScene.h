@@ -75,7 +75,7 @@ private:
 	// 3Dモデル
 	KamataEngine::Model* player_model_ = nullptr;
 	KamataEngine::Model* attack_model_ = nullptr;
-	std::vector<KamataEngine::Sprite*> hpSprites_; // HPアイコン用のスプライト配列
+	std::vector<KamataEngine::Sprite*> hpSprites_;
 	// 敵モデル
 	KamataEngine::Model* enemy_model_ = nullptr;
 	KamataEngine::Model* hitEffectModel_ = nullptr;
@@ -111,14 +111,14 @@ private:
 
 	const float kBossTriggerX = 80.0f;
 
-	// 泡関連
+	// 泡
 	KamataEngine::Model* bubble_model_ = nullptr;
 	uint32_t textureHandleBubble_ = 0;
 	std::list<Bubble*> bubbles_;
 	float bubbleSpawnTimer_ = 0.0f;
-	const float kBubbleSpawnInterval = 0.2f; // 泡が発生する間隔（秒）
+	const float kBubbleSpawnInterval = 0.2f; 
 
-	void SpawnBubble(); // 泡生成関数
+	void SpawnBubble(); 
 
 	Player* player_ = nullptr;
 	Enemy* enemy_ = nullptr;

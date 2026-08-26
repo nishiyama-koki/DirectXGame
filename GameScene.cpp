@@ -195,7 +195,6 @@ void GameScene::CreateVerticalWall(uint32_t mapIndexX) {
 		}
 
 		// 1. マップチップデータ上もブロック扱い（kBlock）に変更
-		// ※MapChipField側に Setter が無い場合は、MapChipFieldクラスに SetMapChipType(x, y, type) を追加してください
 		mapChipField_->SetMapChipTypeByIndex(mapIndexX, i, MapChipType::kBlock);
 
 		// 2. 描画用の WorldTransform を動的生成
@@ -281,7 +280,7 @@ void GameScene::CheckAllCollisions() {
 			if (aabb1.min.x <= bossAABB.max.x && aabb1.max.x >= bossAABB.min.x && aabb1.min.y <= bossAABB.max.y && aabb1.max.y >= bossAABB.min.y) {
 
 				// 【パターンA】 プレイヤーが突進攻撃中の場合 -> ボスにダメージ
-				if (player_->IsAttacking()) { // ※突進判定用関数（環境に合わせて変更してください）
+				if (player_->IsAttacking()) { 
 					if (!boss_->IsInvincible()) {
 						boss_->TakeDamage(1);                         // ボスにダメージ
 						CreateHitEffect(player_->GetWorldPosition()); // ヒットエフェクト生成

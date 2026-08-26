@@ -15,12 +15,8 @@ public:
 	void Initialize(KamataEngine::Model* model, uint32_t textureHandle, const KamataEngine::Vector3& position, const KamataEngine::Vector3& velocity);
 	void Update();
 	void Draw(const KamataEngine::Camera& camera);
-
-	// フラグ管理
 	bool IsDead() const { return !isAlive_; }
 	void OnCollision() { isAlive_ = false; }
-
-	// 衝突判定用（必要に応じて）
 	KamataEngine::Vector3 GetWorldPosition() const { return transform_.translation_; }
 
 	// AABBの取得
@@ -39,9 +35,7 @@ private:
 
 	bool isAlive_ = false;
 	float deathTimer_ = 0.0f;
-	const float kMaxLifeTime_ = 5.0f; // 5秒経過で自動消滅
-
-	// 弾の当たり判定サイズ
+	const float kMaxLifeTime_ = 5.0f; 
 	const float kWidth_ = 0.5f;
 	const float kHeight_ = 0.5f;
 
